@@ -6,7 +6,7 @@ A simple RAT written in Python that uses Discord as it's C2 server.
 - Full Shell  
 - Download files  
 - Upload files  
-- Screenshot screen  
+- Screenshot    
 - Screenshot all open windows  
 - Dump credentials stored in Chrome  
 - Persistence  
