@@ -26,6 +26,8 @@ A simple RAT written in Python that uses Discord as it's C2 server.
 ___
 Once harmony is executed it will create a new category on your server named with the hardware ID of the computer that executed it.  
 3 channels will also be created in that category:  
+
+
 &emsp;-main: Use this channel to send commands to the victim computer.  
 &emsp;-info: On first run the script will dump useful system information in here.  
 &emsp;-creds: On first run the script will dump URL, username and password saved in chrome into here.  
