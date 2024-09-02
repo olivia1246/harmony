@@ -2,6 +2,7 @@ import win32api, win32con, win32gui, win32ui
 import random
 import time
 import ctypes
+import subprocess
 
 ctypes.windll.shcore.SetProcessDpiAwareness(1)
 
@@ -292,9 +293,9 @@ def isAdmin():
     admin_cmd = 'net localgroup administrators'
     admin_cmd = admin_cmd.split()
     
-    for line in run_command('whoami'):
+    for line in runCommand('whoami'):
         user += line.decode()
-    for line in run_command(admin_cmd):
+    for line in runCommand(admin_cmd):
         admins += line.decode()
         
     if '\\' in user:

