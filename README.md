@@ -86,7 +86,7 @@ Downloads a file and saves it to c:\Users\Public\Downloads\
 type upload and then drag the file you want to upload into discord and send the command.
 
 EX:
-![](https://github.com/Harmony-RAT/pngs/upload_example.gif)  
+![](https://github.com/EvanJosephL/Harmony-RAT/blob/main/pngs/upload_example.gif)  
 
 ----
 **screenshot**  
