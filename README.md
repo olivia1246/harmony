@@ -84,7 +84,7 @@ download c:\Users\bob\Downloads\nuclearlaunchcodes.txt
 ```
 
 ---
-**upload**
+**upload**  
 Downloads a file and saves it to c:\Users\Public\Downloads\
 
 type upload and then drag the file you want to upload into discord and send the command.
