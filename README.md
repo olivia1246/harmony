@@ -11,6 +11,8 @@ A simple RAT written in Python that uses Discord as it's C2 server.
 - Persistence  
 - And more...
 
+# Disclaimer
+All code provided in this repository is for educational purposes only.
 
 # Usage  
 **In your server you MUST create a text channel named 'check-in'  
