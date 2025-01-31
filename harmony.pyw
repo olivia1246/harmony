@@ -265,8 +265,6 @@ def isAdmin():
     else:
         return False
 
-#Credits to LimerBoy for cred_stealer
-
 def exit_handler():
     message = hwid + " Has Disconnected."
     
