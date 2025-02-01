@@ -24,7 +24,7 @@ intents.message_content = True
 whURL = ''
 TOKEN = ''
 serverID =  #Takes an integer
-filename = 'harmony.pyw'
+filename = os.path.abspath(sys.argv[0]) # not sure if this breaks if it's on python and not python bundled + harmony executables but idk
 
 webhook = discord.SyncWebhook.from_url(whURL)
 client = discord.Client(intents=intents)
