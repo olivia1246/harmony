@@ -44,8 +44,7 @@ async def on_ready():
     global hwid
     
     guild = client.get_guild(serverID)
-    
-    hwid = subprocess.check_output("powershell (Get-CimInstance Win32_ComputerSystemProduct).UUID").decode().strip()
+    hwid = os.getenv("HOSTNAME")
    
     for category_name in guild.categories:
         if hwid == str(category_name):
