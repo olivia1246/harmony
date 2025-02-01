@@ -21,13 +21,6 @@ import win32api, win32con, win32gui, win32ui
 intents = discord.Intents.all()
 intents.message_content = True
 
-#------------------------------------------------------------------#
-#In your server you MUST create a text channel named 'check-in' and
-#create a webhook that posts in the 'check-in' channel
-#Supply that Webhook URL to the whURL variable
-#------------------------------------------------------------------#
-
-#Enter your Discord servers webhook URL, bot token, and server id, filename of the executable
 whURL = ''
 TOKEN = ''
 serverID =  #Takes an integer
