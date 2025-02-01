@@ -57,9 +57,10 @@ async def on_ready():
         
 @client.event
 async def on_message(msg):
-    for category_name in guild.categories:
-        if hwid == str(category_name):
-            if msg.channel.name == 'main':
+    for category in msg.guild.categories:
+        if hwid == str(category.name):
+            main_channel = discord.utils.get(category.channels, name='main')
+            if main_channel and msg.channel == main_channel:
                 prefix = b'Results of ' + msg.content.encode() + b' \n\n'
                 response = b''
 
