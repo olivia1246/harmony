@@ -1,4 +1,3 @@
-# Configuration
 $baseUrl = "https://discord.com/api/v10"
 $hwid = $env:COMPUTERNAME
 $headers = @{ "Authorization" = "Bot $TOKEN"; "Content-Type" = "application/json" }
