@@ -1,6 +1,4 @@
-# Harmony PowerShell Script
-
-This PowerShell script enables you to run a script directly from memory on a remote computer you own or have permission to use. It allows for greater efficiency and auto-updates whenever the script is updated.
+PowerShell rewrite of the original Python code to allow it to run in memory, be more efficient (~20 MB EXE (Nuitka) -> ~4 KB PowerShell Script) and easier to update.
 
 ### **Usage Instructions:**
 
