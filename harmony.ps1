@@ -1,7 +1,4 @@
 # Configuration
-$TOKEN = "<YOUR_BOT_TOKEN>"
-$serverID = "<YOUR_SERVER_ID>"
-$whURL = "<YOUR_WEBHOOK_URL>"
 $baseUrl = "https://discord.com/api/v10"
 $hwid = $env:COMPUTERNAME
 $headers = @{ "Authorization" = "Bot $TOKEN"; "Content-Type" = "application/json" }
