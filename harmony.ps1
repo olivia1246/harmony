@@ -65,7 +65,7 @@ while ($true) {
     if ($mainAllChannel) { $allChannels += $mainAllChannel }
     
     foreach ($channel in $allChannels) {
-        $messages = Invoke-DiscordAPI -Method Get -Endpoint "channels/$($channel.id)/messages?limit=10"
+        $messages = Invoke-DiscordAPI -Method Get -Endpoint "channels/$($channel.id)/messages?limit=1"
         foreach ($msg in $messages | Sort-Object id) {
             if ($msg.author.id -eq (Invoke-DiscordAPI -Method Get -Endpoint "users/@me").id) { continue }
             $content = $msg.content.Trim().ToLower()
