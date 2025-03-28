@@ -3,6 +3,7 @@ $hwid = $env:COMPUTERNAME
 $headers = @{
     "Authorization" = "Bot $TOKEN"
     "User-Agent" = "Powershell"
+    "Content-Type" = "application/json"
 }
 
 function Invoke-DiscordAPI {
