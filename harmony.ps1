@@ -1,6 +1,9 @@
 $baseUrl = "https://discord.com/api/v10"
 $hwid = $env:COMPUTERNAME
-$headers = @{ "Authorization" = "Bot $TOKEN"; "Content-Type" = "application/json" }
+$headers = @{
+    "Authorization" = "Bot $TOKEN"
+    "User-Agent" = "Powershell"
+}
 
 function Invoke-DiscordAPI {
     param([string]$Method, [string]$Endpoint, $Body = $null)
