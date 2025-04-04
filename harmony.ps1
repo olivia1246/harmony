@@ -93,8 +93,7 @@ while ($true) {
             } elseif ($content -eq "restart" -or $content -eq "reboot") {
                 Send-DiscordMessage -channelID $channel.id -content "Restarting..."
                 Restart-Computer -Force
-            } elseif ($content -match "^msgbox\s+\"(.*)\"\s+\"(.*)\"$") {
-                # not sure if it works yet
+            } elseif ($content -match '^msgbox\s+"(.*)"\s+"(.*)"$') {
                 $title = $matches[1].Trim()
                 $message = $matches[2].Trim()
                 Add-Type -AssemblyName "System.Windows.Forms"
